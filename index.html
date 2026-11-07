@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Web Builder | Powered by Aleem Teach Foundation</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            900: '#4c1d95',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- JSZip for exporting projects as ZIP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-panel { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .dark .glass-panel { background: rgba(17, 24, 39, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .light .glass-panel { background: rgba(255, 255, 255, 0.85); border: 1px solid rgba(0, 0, 0, 0.08); }
+        .gradient-text { background: linear-gradient(135deg, #a78bfa 0%, #ec4899 50%, #3b82f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.4); border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-purple-500 selection:text-white">
+
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-50 glass-panel border-b border-slate-800/60 px-4 lg:px-8 py-3 flex items-center justify-between">
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="router.navigate('home')">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-blue-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                <i class="fa-solid fa-wand-magic-sparkles text-white text-lg"></i>
+            </div>
+            <div>
+                <span class="font-extrabold text-lg tracking-tight gradient-text">Free Web Builder</span>
+                <span class="block text-[10px] text-slate-400 font-medium tracking-wider uppercase">Aleem Teach Foundation</span>
+            </div>
+        </div>
+
+        <nav class="hidden md:flex items-center space-x-1 text-sm font-medium">
+            <button onclick="router.navigate('home')" class="nav-btn px-3 py-2 rounded-lg hover:bg-slate-800/60 transition text-slate-300 hover:text-white" data-target="home"><i class="fa-solid fa-house mr-1.5"></i> Dashboard</button>
+            <button onclick="router.navigate('projects')" class="nav-btn px-3 py-2 rounded-lg hover:bg-slate-800/60 transition text-slate-300 hover:text-white" data-target="projects"><i class="fa-solid fa-folder-open mr-1.5"></i> My Websites</button>
+            <button onclick="router.navigate('templates')" class="nav-btn px-3 py-2 rounded-lg hover:bg-slate-800/60 transition text-slate-300 hover:text-white" data-target="templates"><i class="fa-solid fa-layer-group mr-1.5"></i> Templates</button>
+            <button onclick="router.navigate('howto')" class="nav-btn px-3 py-2 rounded-lg hover:bg-slate-800/60 transition text-slate-300 hover:text-white" data-target="howto"><i class="fa-solid fa-book mr-1.5"></i> How to Use</button>
+            <button onclick="router.navigate('about')" class="nav-btn px-3 py-2 rounded-lg hover:bg-slate-800/60 transition text-slate-300 hover:text-white" data-target="about"><i class="fa-solid fa-circle-info mr-1.5"></i> About</button>
+            <button onclick="router.navigate('contact')" class="nav-btn px-3 py-2 rounded-lg hover:bg-slate-800/60 transition text-slate-300 hover:text-white" data-target="contact"><i class="fa-solid fa-envelope mr-1.5"></i> Contact</button>
+        </nav>
+
+        <div class="flex items-center space-x-3">
+            <div id="usageBadge" class="hidden sm:flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-900/90 border border-slate-800 text-xs font-medium text-slate-300 shadow-inner">
+                <i class="fa-solid fa-bolt text-amber-400"></i>
+                <span id="usageCountText">12/40 Websites</span>
+            </div>
+            <button onclick="router.navigate('settings')" class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white transition shadow" title="Settings">
+                <i class="fa-solid fa-gear"></i>
+            </button>
+            <button onclick="openProfileModal()" class="w-10 h-10 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 flex items-center justify-center font-bold text-white shadow-md hover:opacity-95 transition">
+                AT
+            </button>
+            <button onclick="toggleMobileMenu()" class="md:hidden p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300">
+                <i class="fa-solid fa-bars text-lg"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Mobile Drawer -->
+    <div id="mobileMenu" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex flex-col p-6 md:hidden">
+        <div class="flex justify-between items-center mb-8">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-blue-500 flex items-center justify-center text-white">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </div>
+                <span class="font-extrabold text-lg gradient-text">Free Web Builder</span>
+            </div>
+            <button onclick="toggleMobileMenu()" class="p-2 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+        </div>
+        <div class="flex flex-col space-y-3 font-medium text-base">
+            <button onclick="router.navigate('home'); toggleMobileMenu();" class="p-3 text-left rounded-xl bg-slate-900/60 hover:bg-slate-800"><i class="fa-solid fa-house mr-3 text-purple-400"></i> Dashboard</button>
+            <button onclick="router.navigate('projects'); toggleMobileMenu();" class="p-3 text-left rounded-xl bg-slate-900/60 hover:bg-slate-800"><i class="fa-solid fa-folder-open mr-3 text-purple-400"></i> My Websites</button>
+            <button onclick="router.navigate('templates'); toggleMobileMenu();" class="p-3 text-left rounded-xl bg-slate-900/60 hover:bg-slate-800"><i class="fa-solid fa-layer-group mr-3 text-purple-400"></i> Templates</button>
+            <button onclick="router.navigate('howto'); toggleMobileMenu();" class="p-3 text-left rounded-xl bg-slate-900/60 hover:bg-slate-800"><i class="fa-solid fa-book mr-3 text-purple-400"></i> How to Use</button>
+            <button onclick="router.navigate('about'); toggleMobileMenu();" class="p-3 text-left rounded-xl bg-slate-900/60 hover:bg-slate-800"><i class="fa-solid fa-circle-info mr-3 text-purple-400"></i> About</button>
+            <button onclick="router.navigate('contact'); toggleMobileMenu();" class="p-3 text-left rounded-xl bg-slate-900/60 hover:bg-slate-800"><i class="fa-solid fa-envelope mr-3 text-purple-400"></i> Contact Us</button>
+            <button onclick="router.navigate('settings'); toggleMobileMenu();" class="p-3 text-left rounded-xl bg-slate-900/60 hover:bg-slate-800"><i class="fa-solid fa-gear mr-3 text-purple-400"></i> Settings & API Key</button>
+        </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <main class="flex-grow flex flex-col relative overflow-x-hidden">
+
+        <!-- 1. HOME VIEW (Dashboard) -->
+        <section id="view-home" class="view-section flex flex-col flex-grow px-4 lg:px-12 py-8 max-w-7xl mx-auto w-full">
+            <div class="text-center max-w-3xl mx-auto mt-4 mb-8">
+                <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-purple-950/60 border border-purple-800/50 text-purple-300 text-xs font-semibold mb-6 shadow-sm">
+                    <i class="fa-solid fa-sparkles text-purple-400"></i>
+                    <span>Powered by Aleem Teach Foundation</span>
+                </div>
+                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight mb-4">
+                    Build Any Website With AI – <span class="gradient-text">Completely Free</span>
+                </h1>
+                <p class="text-slate-400 text-base sm:text-lg">
+                    Describe your idea and let AI transform it into a real website. Supports English, Hindi, and Hinglish.
+                </p>
+            </div>
+
+            <!-- Prompt Box Card -->
+            <div class="glass-panel rounded-3xl p-4 sm:p-6 shadow-2xl max-w-4xl mx-auto w-full mb-10 border border-purple-500/20 relative">
+                <textarea id="mainPromptInput" rows="3" class="w-full bg-transparent text-slate-100 placeholder-slate-500 text-base sm:text-lg focus:outline-none resize-none" placeholder="Describe the website you want to build... (e.g. A modern e-commerce clothing store with cart and dark theme)"></textarea>
+                
+                <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-800/80 mt-2">
+                    <div class="flex items-center space-x-2">
+                        <button type="button" onclick="triggerSpeechRecognition()" id="micBtn" class="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white transition border border-slate-800" title="Voice Prompt (Speech Recognition)">
+                            <i class="fa-solid fa-microphone"></i>
+                        </button>
+                        <label class="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white transition border border-slate-800 cursor-pointer" title="Upload Image Reference">
+                            <i class="fa-solid fa-image"></i>
+                            <input type="file" id="imageUploadInput" accept="image/*" class="hidden" onchange="handleFileAttachment(event, 'image')">
+                        </label>
+                        <label class="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white transition border border-slate-800 cursor-pointer" title="Upload Document / File">
+                            <i class="fa-solid fa-paperclip"></i>
+                            <input type="file" id="fileUploadInput" class="hidden" onchange="handleFileAttachment(event, 'file')">
+                        </label>
+                        <span id="attachmentIndicator" class="text-xs text-purple-400 hidden font-medium flex items-center space-x-1">
+                            <i class="fa-solid fa-check-circle"></i> <span id="attachmentName">Attached</span>
+                        </span>
+                    </div>
+
+                    <button onclick="handleGenerateWebsite()" class="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-sm shadow-lg shadow-purple-600/30 flex items-center space-x-2 transition transform active:scale-95">
+                        <span>Generate Website</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Example Prompts Carousel / Grid -->
+            <div class="max-w-4xl mx-auto w-full mb-12">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3"><i class="fa-solid fa-lightbulb text-amber-400 mr-1.5"></i> Try Example Prompts</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    <button onclick="selectPrompt('A professional portfolio website for a freelance UI/UX designer with dark mode and project gallery')" class="p-3 text-left rounded-xl bg-slate-900/70 border border-slate-800 hover:border-purple-500/50 hover:bg-slate-900 transition text-xs text-slate-300">
+                        ✨ Designer Portfolio Website
+                    </button>
+                    <button onclick="selectPrompt('Ek modern restaurant website with online food ordering menu, table reservation form and glowing animations')" class="p-3 text-left rounded-xl bg-slate-900/70 border border-slate-800 hover:border-purple-500/50 hover:bg-slate-900 transition text-xs text-slate-300">
+                        🍔 Restaurant & Food Ordering (Hinglish)
+                    </button>
+                    <button onclick="selectPrompt('SaaS landing page with pricing calculator, feature breakdown, testimonials and modern glassmorphism design')" class="p-3 text-left rounded-xl bg-slate-900/70 border border-slate-800 hover:border-purple-500/50 hover:bg-slate-900 transition text-xs text-slate-300">
+                        🚀 SaaS Startup Landing Page
+                    </button>
+                </div>
+            </div>
+
+            <!-- Recent Projects Section -->
+            <div class="max-w-6xl mx-auto w-full">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white flex items-center"><i class="fa-solid fa-clock-rotate-left mr-2 text-purple-400"></i> Recent Projects</h2>
+                        <p class="text-xs text-slate-400">Your locally saved website creations</p>
+                    </div>
+                    <div class="flex items-center space-x-3 w-full sm:w-auto">
+                        <div class="relative flex-grow sm:w-64">
+                            <i class="fa-solid fa-search absolute left-3 top-3 text-slate-500 text-xs"></i>
+                            <input type="text" id="projectSearchInput" oninput="filterProjects(this.value)" placeholder="Search projects..." class="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-200 focus:outline-none focus:border-purple-500">
+                        </div>
+                        <button onclick="router.navigate('projects')" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl text-xs font-semibold text-slate-300 transition">View All</button>
+                    </div>
+                </div>
+
+                <div id="recentProjectsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Populated via JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. GENERATOR / WORKSPACE VIEW (Lovable Style) -->
+        <section id="view-workspace" class="view-section hidden flex-col flex-grow h-[calc(100vh-65px)]">
+            <div class="flex flex-col lg:flex-row flex-grow h-full overflow-hidden">
+                
+                <!-- Left Panel: AI Chat & Modification Assistant -->
+                <div class="w-full lg:w-96 flex flex-col border-r border-slate-800 bg-slate-900/50 h-1/2 lg:h-full">
+                    <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
+                            <span class="font-bold text-sm text-slate-200">AI Assistant</span>
+                        </div>
+                        <button onclick="router.navigate('home')" class="text-xs text-slate-400 hover:text-white px-2.5 py-1 rounded-lg bg-slate-800"><i class="fa-solid fa-arrow-left mr-1"></i> Dashboard</button>
+                    </div>
+
+                    <!-- Chat Messages List -->
+                    <div id="chatMessages" class="flex-grow p-4 overflow-y-auto space-y-4 text-xs">
+                        <div class="p-3 rounded-xl bg-purple-950/50 border border-purple-800/40 text-purple-200">
+                            <p class="font-bold mb-1"><i class="fa-solid fa-wand-magic-sparkles mr-1 text-purple-400"></i> Website Generated Successfully!</p>
+                            <p class="text-slate-300">Your website is ready. You can ask me to change colors, add a login page, insert a contact form, or modify animations.</p>
+                        </div>
+                    </div>
+
+                    <!-- Chat Input -->
+                    <div class="p-3 border-t border-slate-800 bg-slate-950">
+                        <div class="flex items-center space-x-2">
+                            <input type="text" id="chatPromptInput" onkeydown="if(event.key==='Enter') sendChatMessage()" placeholder="Ask AI to modify website..." class="flex-grow bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-purple-500">
+                            <button onclick="sendChatMessage()" class="p-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl shadow"><i class="fa-solid fa-paper-plane text-xs"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Preview & Code Editor Workspace -->
+                <div class="flex-grow flex flex-col h-1/2 lg:h-full bg-slate-950 overflow-hidden">
+                    
+                    <!-- Workspace Header Bar -->
+                    <div class="flex flex-wrap items-center justify-between px-4 py-2 border-b border-slate-800 bg-slate-900/80 gap-2">
+                        <div class="flex items-center space-x-2">
+                            <span id="workspaceProjectName" class="font-bold text-sm text-white">My Project</span>
+                            <span id="workspaceUrlBadge" class="text-[10px] px-2 py-0.5 rounded-md bg-purple-950 border border-purple-800 text-purple-300">https://project.atf.com</span>
+                        </div>
+
+                        <!-- Mode Tabs (Preview vs Code Editor) -->
+                        <div class="flex items-center space-x-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                            <button onclick="switchWorkspaceTab('preview')" id="tabBtnPreview" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-600 text-white shadow"><i class="fa-solid fa-eye mr-1.5"></i> Preview</button>
+                            <button onclick="switchWorkspaceTab('code')" id="tabBtnCode" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white"><i class="fa-solid fa-code mr-1.5"></i> Code Editor</button>
+                        </div>
+
+                        <!-- Preview Device Switchers & Actions -->
+                        <div class="flex items-center space-x-2">
+                            <div id="deviceControls" class="hidden sm:flex items-center space-x-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs text-slate-400">
+                                <button onclick="setDeviceView('desktop')" class="px-2 py-1 rounded hover:bg-slate-800 hover:text-white" title="Desktop View"><i class="fa-solid fa-desktop"></i></button>
+                                <button onclick="setDeviceView('tablet')" class="px-2 py-1 rounded hover:bg-slate-800 hover:text-white" title="Tablet View"><i class="fa-solid fa-tablet-screen-button"></    <!-- MODALS (Limit Reached / YouTube Verification / Custom Domain / Profile) -->
+
+    <!-- Limit Reached Modal -->
+    <div id="limitModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="glass-panel rounded-3xl max-w-md w-full p-6 border border-purple-500/30 text-center space-y-4 shadow-2xl">
+            <div class="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center mx-auto text-2xl">
+                <i class="fa-solid fa-bolt-lightning"></i>
+            </div>
+            <h3 class="text-xl font-bold text-white">Daily Limit Reached</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">
+                You have used your 40 free websites for today. Subscribe to our YouTube channel to unlock additional website generation access. Completely free!
+            </p>
+            <div class="pt-2 space-y-2">
+                <a href="https://youtube.com/@atfz3?si=Rwkzg1P4-heO0p2W" target="_blank" onclick="onSubscribeClicked()" class="w-full py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 shadow transition">
+                    <i class="fa-brands fa-youtube text-base"></i>
+                    <span>Subscribe on YouTube</span>
+                </a>
+                <button onclick="openVerificationModal()" class="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl text-xs transition shadow">
+                    I Subscribed - Verify Now
+                </button>
+                <button onclick="closeModal('limitModal')" class="w-full py-2 bg-slate-900 hover:bg-slate-800 text-slate-400 rounded-xl text-xs">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- YouTube Verification Modal -->
+    <div id="verificationModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="glass-panel rounded-3xl max-w-md w-full p-6 border border-purple-500/30 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center">
+                <h3 class="text-lg font-bold text-white">Verify Your YouTube Subscription</h3>
+                <button onclick="closeModal('verificationModal')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <ol class="text-xs text-slate-300 space-y-1.5 list-decimal pl-4">
+                <li>Subscribe to Aleem Teach Foundation on YouTube.</li>
+                <li>Return to Free Web Builder.</li>
+                <li>Upload a screenshot showing your subscription.</li>
+                <li>Click Next to submit for verification.</li>
+            </ol>
+
+            <div class="space-y-3 pt-2">
+                <label class="border-2 border-dashed border-slate-700 hover:border-purple-500 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer bg-slate-900/50 transition">
+                    <i class="fa-solid fa-cloud-arrow-up text-2xl text-purple-400 mb-2"></i>
+                    <span id="verificationFileLabel" class="text-xs font-semibold text-slate-300">Upload Subscription Screenshot</span>
+                    <input type="file" accept="image/*" class="hidden" onchange="handleVerificationScreenshot(event)">
+                </label>
+                <div id="verificationPreviewContainer" class="hidden relative rounded-xl overflow-hidden h-32 border border-slate-800">
+                    <img id="verificationImgPreview" class="w-full h-full object-cover">
+                    <button onclick="removeVerificationScreenshot()" class="absolute top-2 right-2 p-1.5 bg-red-600 text-white rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </div>
+
+            <div class="pt-2">
+                <button onclick="submitVerification()" id="verifyNextBtn" disabled class="w-full py-3 bg-purple-600/50 cursor-not-allowed text-white font-bold rounded-xl text-xs transition shadow">
+                    Next & Submit Verification
+                </button>
+            </div>
+            <p class="text-[10px] text-slate-500 text-center">Note: This is a local demo verification workflow until backend verification is connected.</p>
+        </div>
+    </div>
+
+    <!-- Custom Domain Modal -->
+    <div id="customDomainModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="glass-panel rounded-3xl max-w-md w-full p-6 border border-purple-500/30 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center">
+                <h3 class="text-lg font-bold text-white">Unlock Custom Domain</h3>
+                <button onclick="closeModal('customDomainModal')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <p class="text-xs text-slate-300">Connect your custom domain to your generated website by subscribing to our YouTube channel and entering your domain below.</p>
+            
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">Your Custom Domain</label>
+                    <input type="text" id="customDomainInput" placeholder="mywebsite.com" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-purple-500">
+                </div>
+                <div id="domainStatusBox" class="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-400">
+                    Status: Awaiting domain verification & DNS configuration.
+                </div>
+            </div>
+
+            <div class="pt-2 flex space-x-2">
+                <button onclick="saveCustomDomain()" class="flex-grow py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl text-xs transition shadow">Save & Connect</button>
+                <button onclick="closeModal('customDomainModal')" class="px-4 py-3 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded-xl text-xs">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Profile Modal -->
+    <div id="profileModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="glass-panel rounded-3xl max-w-md w-full p-6 border border-slate-800 space-y-4 text-center shadow-2xl">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white text-2xl font-bold mx-auto shadow-lg">
+                AT
+            </div>
+            <h3 class="text-xl font-bold text-white">Aleem Teach Foundation User</h3>
+            <p class="text-xs text-slate-400">Free Web Builder &bull; Client Edition</p>
+            <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-left space-y-2 text-xs">
+                <div class="flex justify-between"><span class="text-slate-400">Today's Generation:</span> <span id="modalUsageStat" class="font-bold text-purple-400">12 / 40 Websites</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Storage:</span> <span class="font-bold text-emerald-400">Browser LocalStorage</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Hosting Target:</span> <span class="font-bold text-blue-400">GitHub Pages Static</span></div>
+            </div>
+            <button onclick="closeModal('profileModal')" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-slate-300 font-bold rounded-xl text-xs">Close</button>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Engine -->
+    <script>
+        // --- State Management ---
+        let state = {
+            currentView: 'home',
+            projects: JSON.parse(localStorage.getItem('atf_projects') || '[]'),
+            usageCount: parseInt(localStorage.getItem('atf_usage_count') || '12'),
+            lastUsageDate: localStorage.getItem('atf_usage_date') || new Date().toDateString(),
+            currentProject: null,
+            activeCodeTab: 'html',
+            apiKey: localStorage.getItem('atf_gemini_key') || '',
+            attachedFile: null,
+            verificationScreenshot: null
+        };
+
+        // Reset daily limit if new day
+        const todayStr = new Date().toDateString();
+        if (state.lastUsageDate !== todayStr) {
+            state.usageCount = 0;
+            state.lastUsageDate = todayStr;
+            localStorage.setItem('atf_usage_count', '0');
+            localStorage.setItem('atf_usage_date', todayStr);
+        }
+
+        // --- Router ---
+        const router = {
+            navigate: function(viewId) {
+                document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+                const target = document.getElementById(`view-${viewId}`);
+                if (target) {
+                    target.classList.remove('hidden');
+                    state.currentView = viewId;
+                    window.scrollTo(0,0);
+                    
+                    // Update nav highlights
+                    document.querySelectorAll('.nav-btn').forEach(btn => {
+                        if(btn.dataset.target === viewId) {
+                            btn.classList.add('bg-slate-800', 'text-white');
+                        } else {
+                            btn.classList.remove('bg-slate-800', 'text-white');
+                        }
+                    });
+
+                    if (viewId === 'projects') renderProjectsPage();
+                    updateUsageUI();
+                }
+            }
+        };
+
+        function updateUsageUI() {
+            const remaining = Math.max(0, 40 - state.usageCount);
+            document.getElementById('usageCountText').innerText = `${state.usageCount}/40 Websites`;
+            const badge = document.getElementById('usageBadge');
+            if(badge) badge.title = `${remaining} Free Websites Remaining Today`;
+            const modalStat = document.getElementById('modalUsageStat');
+            if(modalStat) modalStat.innerText = `${state.usageCount} / 40 Websites`;
+            localStorage.setItem('atf_usage_count', state.usageCount);
+        }
+        updateUsageUI();
+
+        // --- Navigation / UI Helpers ---
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        function selectPrompt(promptText) {
+            document.getElementById('mainPromptInput').value = promptText;
+            document.getElementById('mainPromptInput').focus();
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        function openProfileModal() { openModal('profileModal'); }
+
+        // --- File & Speech Attachments ---
+        function handleFileAttachment(e, type) {
+            const file = e.target.files[0];
+            if(file) {
+                state.attachedFile = { name: file.name, type: type };
+                const indicator = document.getElementById('attachmentIndicator');
+                const nameSpan = document.getElementById('attachmentName');
+                nameSpan.innerText = file.name;
+                indicator.classList.remove('hidden');
+            }
+        }
+
+        function triggerSpeechRecognition() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert('Speech recognition is not supported in your browser. Please type your prompt.');
+                return;
+            }
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'en-US';
+            const micBtn = document.getElementById('micBtn');
+            micBtn.classList.add('text-red-500', 'animate-pulse');
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('mainPromptInput').value = transcript;
+                micBtn.classList.remove('text-red-500', 'animate-pulse');
+            };
+            recognition.onerror = function() {
+                micBtn.classList.remove('text-red-500', 'animate-pulse');
+            };
+            recognition.onend = function() {
+                micBtn.classList.remove('text-red-500', 'animate-pulse');
+            };
+            recognition.start();
+        }
+
+        // --- AI Website Generation Engine ---
+        async function handleGenerateWebsite() {
+            const prompt = document.getElementById('mainPromptInput').value.trim();
+            if(!prompt) {
+                alert('Please describe the website you want to build.');
+                document.getElementById('mainPromptInput').focus();
+                return;
+            }
+
+            if (state.usageCount >= 40) {
+                openModal('limitModal');
+                return;
+            }
+
+            state.usageCount++;
+            updateUsageUI();
+
+            // Generate Slug & Name from prompt
+            let cleanedName = prompt.split(' ').slice(0, 3).join(' ').replace(/[^a-zA-Z0-9 ]/g, '');
+            if(!cleanedName) cleanedName = 'My Website';
+            const slug = cleanedName.toLowerCase().replace(/\s+/g, '-');
+
+            // Generate Initial Code based on prompt keywords
+            let generatedCode = generateCodeFromPrompt(prompt, cleanedName, slug);
+
+            const newProject = {
+                id: 'proj_' + Date.now(),
+                name: cleanedName,
+                slug: slug,
+                url: `https://${slug}.atf.com`,
+                date: new Date().toLocaleDateString(),
+                html: generatedCode.html,
+                css: generatedCode.css,
+                js: generatedCode.js,
+                promptHistory: [prompt]
+            };
+
+            state.projects.unshift(newProject);
+            saveProjectsToStorage();
+            state.currentProject = newProject;
+
+            // Switch to Workspace View
+            router.navigate('workspace');
+            loadWorkspaceProject();
+        }
+
+        function generateCodeFromPrompt(prompt, title, slug) {
+            let lower = prompt.toLowerCase();
+            let themeColor = '#8b5cf6';
+            if (lower.includes('blue')) themeColor = '#3b82f6';
+            if (lower.includes('red') || lower.includes('restaurant')) themeColor = '#ef4444';
+            if (lower.includes('emerald') || lower.includes('green')) themeColor = '#10b981';
+            if (lower.includes('black') || lower.includes('dark')) themeColor = '#0f172a';
+
+            let html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col justify-between">
+    <header class="border-b border-slate-800 p-4 flex justify-between items-center bg-slate-900/80 backdrop-blur">
+        <div class="flex items-center space-x-2">
+            <div class="w-9 h-9 rounded-xl bg-purple-600 flex items-center justify-center font-bold text-white shadow-lg">⚡</div>
+            <span class="font-extrabold text-lg text-white">${title}</span>
+        </div>
+        <nav class="hidden md:flex space-x-6 text-sm text-slate-300 font-medium">
+            <a href="#features" class="hover:text-purple-400">Features</a>
+            <a href="#about" class="hover:text-purple-400">About</a>
+            <a href="#contact" class="hover:text-purple-400">Contact</a>
+        </nav>
+        <button onclick="alert('Welcome to ${title}!')" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold shadow">Get Started</button>
+    </header>
+
+    <main class="flex-grow px-4 py-12 max-w-5xl mx-auto text-center my-auto">
+        <div class="inline-block px-3 py-1 rounded-full bg-purple-950 border border-purple-800 text-purple-300 text-xs font-semibold mb-4">✨ Built with Free Web Builder & AI</div>
+        <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight mb-6 text-white">${title}</h1>
+        <p class="text-slate-400 text-base sm:text-lg max-w-2xl mx-auto mb-8">${prompt}</p>
+        <div class="flex justify-center space-x-4">
+            <button onclick="triggerAction()" class="px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl text-sm shadow-xl transition">Explore Now</button>
+            <a href="#contact" class="px-6 py-3 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-bold rounded-xl text-sm transition">Contact Us</a>
+        </div>
+    </main>
+
+    <footer class="border-t border-slate-800 p-6 text-center text-xs text-slate-500 bg-slate-900/40">
+        &copy; 2026 ${title}. Generated by Free Web Builder (Aleem Teach Foundation).
+    </footer>
+    <script src="script.js"></script>
+</body>
+</html>`;
+
+            let css = `/* Custom Styles for ${title} */
+body {
+    background-color: #030712;
+    color: #f8fafc;
+}
+`;
+
+            let js = `// JavaScript functionality for ${title}
+function triggerAction() {
+    alert('Thank you for exploring ${title}! Generated via Free Web Builder.');
+}
+console.log('${title} initialized successfully.');`;
+
+            return { html, css, js };
+        }
+
+        function loadWorkspaceProject() {
+            if(!state.currentProject) return;
+            document.getElementById('workspaceProjectName').innerText = state.currentProject.name;
+            document.getElementById('workspaceUrlBadge').innerText = state.currentProject.url;
+            
+            // Populate code editor tabs
+            document.getElementById('codeEditorTextarea').value = state.currentProject.html;
+            state.activeCodeTab = 'html';
+            updateCodeTabStyles();
+
+            renderLivePreview();
+        }
+
+        function renderLivePreview() {
+            if(!state.currentProject) return;
+            const iframe = document.getElementById('livePreviewFrame');
+            const fullDoc = `
+                ${state.currentProject.html}
+                <style>${state.currentProject.css}</style>
+                <script>${state.currentProject.js}<\/script>
+            `;
+            iframe.srcdoc = fullDoc;
+        }
+
+        function switchWorkspaceTab(tab) {
+            const previewArea = document.getElementById('workspacePreviewArea');
+            const codeArea = document.getElementById('workspaceCodeArea');
+            const btnPreview = document.getElementById('tabBtnPreview');
+            const btnCode = document.getElementById('tabBtnCode');
+            const deviceControls = document.getElementById('deviceControls');
+
+            if(tab === 'preview') {
+                previewArea.classList.remove('hidden');
+                codeArea.classList.add('hidden');
+                btnPreview.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-600 text-white shadow";
+                btnCode.className = "px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white";
+                deviceControls.classList.remove('hidden');
+                renderLivePreview();
+            } else {
+                previewArea.classList.add('hidden');
+                codeArea.classList.remove('hidden');
+                btnCode.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg
